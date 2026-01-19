@@ -44,3 +44,41 @@ func (r *UserRepo) SaveUser(ctx context.Context, user models.User) (models.User,
 	// created_at / updated_at are set by DB defaults
 	return user, nil
 }
+
+// CreateUser inserts a new user into ping.users
+func (r *UserRepo) CheckUser(ctx context.Context,email string) (bool,error) {
+
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM ping.users
+			WHERE email=$1
+		)
+	`
+
+	var exists bool
+
+	err := r.pool.QueryRow(ctx,query,&email).Scan(&exists)
+	if err!=nil {
+		return false,err
+	}
+
+	return exists,nil
+}
+
+func (r *UserRepo) CheckUsername(ctx context.Context,username string) (bool,error) {
+	query := `SELECT EXIST (
+			SELECT 1
+			FROM users
+			WHERE username=$1
+	)`
+
+	var exist bool
+
+	err := r.pool.QueryRow(ctx,query,&username).Scan(&exist)
+	if err!=nil {
+		return false,err
+	}
+
+	return exist,nil
+}
